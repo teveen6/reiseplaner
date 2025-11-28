@@ -1,0 +1,43 @@
+import os
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+
+# LLM anlegen (explicit api_key + base_url für Cerebras)
+llm = ChatOpenAI(
+    api_key=os.environ["CEREBRAS_TOKEN"],
+    base_url="https://api.cerebras.ai/v1",
+    model="llama3.1-8b",
+    temperature=0.4,   # eher strukturiert
+)
+
+# Prompt Template im Chat-Stil (Use Case 1: Basisplaner)
+prompt = ChatPromptTemplate.from_messages([
+    ("system",
+     "Du bist ein Reiseplaner. Erstelle klare, realistische Tagespläne in Deutsch. "
+     "Berücksichtige Reisedauer, Reiseziel und Interessen. "
+     "Formatiere so:\n"
+     "Tag 1 – Morgen: ...\nNachmittag: ...\nAbend: ...\n"
+     "Kurze Begründungen, sinnvolle Reihenfolge, realistische Dauer."),
+    ("human",
+     "Plane {days} Tage in {city}. Interessen: {interests}.")
+])
+
+# Chain: Prompt → LLM → String
+chain = prompt | llm | StrOutputParser()
+
+
+def plan_trip(city: str, days: int, interests: str) -> str:
+    """Erzeugt einen strukturierten Tagesplan (Use Case 1 – Basis)."""
+    if not (city and interests):
+        return "Bitte Stadt und Interessen angeben."
+    try:
+        days = int(days)
+        if days < 1:
+            return "Bitte 'days' als positive Zahl angeben."
+    except Exception:
+        return "Bitte 'days' als ganze Zahl angeben."
+    return chain.invoke({"city": city.strip(), "days": days, "interests": interests.strip()})
+
+# Beispielaufruf (du kannst die Werte anpassen)
+print(plan_trip("Madrid","4","Essen"))
