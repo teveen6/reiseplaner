@@ -1,3 +1,6 @@
+'''Reiseplaner anhand weniger Informationen wie Reisedauer und Destination.
+Unter Berücksichtigung des Wetters soll die bestmögliche Gestaltung der Reise garantiert werden.'''
+
 import os
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
